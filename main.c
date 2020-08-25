@@ -9,6 +9,22 @@ void usage(char* argv[]) {
 
 }
 
+void CheckIfChildIsClosedA(HANDLE childHandle, char* filenameA) {
+	DWORD exitCode;
+	int closeAll = 0;
+
+	GetExitCodeProcess(childHandle, &exitCode);
+
+	if (exitCode == 259) {
+		// STILL_ACTIVE
+		return;
+	}
+	
+	DeleteFileA(filenameA);
+
+	exit(0);
+}
+
 
 int main(int argc, char* argv[]) {
 
@@ -30,6 +46,8 @@ int main(int argc, char* argv[]) {
 	char* lpCurrentDirectory=NULL;
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
+	HANDLE childHandle;
+
 
 	memset(&si, 0, sizeof(STARTUPINFO));
 	si.cb = sizeof(STARTUPINFO);
@@ -56,6 +74,7 @@ int main(int argc, char* argv[]) {
 	FILE* outputFile;
 	char* s;
 	pid = pi.dwProcessId;
+	childHandle = pi.hProcess;
 
 	// Get name of output file
 	char* logFileName = malloc(255 * sizeof(char));
@@ -98,6 +117,12 @@ int main(int argc, char* argv[]) {
 		fclose(outputFile);
 		free(ws);
 		*/
+
+
+		for (int i = 0; i < 200; i++) {
+			CheckIfChildIsClosedA(childHandle, logFileName);
+			Sleep(10);
+		}
 
 		Sleep(2000);
 
